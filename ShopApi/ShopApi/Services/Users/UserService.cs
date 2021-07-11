@@ -29,8 +29,8 @@ namespace ShopApi.Services
                 user.Id = IdentityHelper.GenerateId();
                 user.DateCreated = DateTimeOffset.Now;
 
-                await appDb.Users.AddAsync(user);
-                await appDb.SaveChangesAsync();
+                //await appDb.Users.AddAsync(user);
+                //await appDb.SaveChangesAsync();
                 return user;
             }
         }

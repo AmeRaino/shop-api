@@ -85,7 +85,7 @@ namespace ShopApi.Services
 
                 var result = PasswordHelper.HashPasswordWithRandomSalt(password);
 
-                userAccount.Id = "";
+                userAccount.Id = String.Format("AC{0}", userAccount.User.Id);
                 userAccount.PasswordHash = result.hashed;
                 userAccount.PasswordSalt = result.salt;
                 userAccount.DateCreated = DateTimeOffset.Now;

@@ -16,9 +16,11 @@ namespace ShopApi.Controllers
     public class UserAccountController : ControllerBase
     {
         private readonly UserAccountService _accountService;
-        public UserAccountController(UserAccountService accountService)
+        private readonly UserService _userService;
+        public UserAccountController(UserAccountService accountService, UserService userService)
         {
             _accountService = accountService;
+            _userService = userService;
         }
 
 
@@ -43,7 +45,13 @@ namespace ShopApi.Controllers
             {
                 var user = new User();
                 user.CopyPropertiesFrom(model);
-                return Ok();
+                user = await _userService.Create(user);
+
+                var account = new UserAccount();
+                account.CopyPropertiesFrom(model);
+                account.User = user;
+                account = await _accountService.Register(account, model.Password);
+                return Ok(account);
             }
             catch (ApplicationException ex)
             {

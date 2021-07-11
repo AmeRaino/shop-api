@@ -16,7 +16,8 @@ namespace ShopApi.Migrations
                     Lastname = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
                     Email = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
                     Phone = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
-                    Birthday = table.Column<long>(type: "bigint", nullable: false)
+                    Birthday = table.Column<long>(type: "bigint", nullable: false),
+                    DateCreated = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -47,7 +48,7 @@ namespace ShopApi.Migrations
                 name: "UserAccount",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    Id = table.Column<string>(type: "nvarchar(34)", maxLength: 34, nullable: false),
                     UserId = table.Column<string>(type: "nvarchar(32)", maxLength: 32, nullable: false),
                     Username = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
                     PasswordHash = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),

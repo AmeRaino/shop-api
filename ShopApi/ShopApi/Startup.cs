@@ -30,6 +30,7 @@ namespace ShopApi
         {
             services.AddControllers();
             services.AddSingleton<UserAccountService>();
+            services.AddSingleton<UserService>();
             services.AddDbContext<AppDbContext>();
         }
 

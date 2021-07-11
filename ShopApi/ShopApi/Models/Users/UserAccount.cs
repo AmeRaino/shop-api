@@ -11,7 +11,7 @@ namespace ShopApi.Models.Users
     public class UserAccount
     {
         [Key]
-        [StringLength(20)]
+        [StringLength(34)]
         public string Id { get; set; }
 
         [Required]

@@ -19,7 +19,7 @@ namespace ShopApi.Migrations
                 .HasAnnotation("ProductVersion", "5.0.7")
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-            modelBuilder.Entity("ShopApi.Models.User.AuthenticationProvider", b =>
+            modelBuilder.Entity("ShopApi.Models.Users.AuthenticationProvider", b =>
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(128)
@@ -48,7 +48,7 @@ namespace ShopApi.Migrations
                     b.ToTable("AuthenticationProvider");
                 });
 
-            modelBuilder.Entity("ShopApi.Models.User.User", b =>
+            modelBuilder.Entity("ShopApi.Models.Users.User", b =>
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(32)
@@ -56,6 +56,9 @@ namespace ShopApi.Migrations
 
                     b.Property<long>("Birthday")
                         .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset>("DateCreated")
+                        .HasColumnType("datetimeoffset");
 
                     b.Property<string>("Email")
                         .HasMaxLength(255)
@@ -78,11 +81,11 @@ namespace ShopApi.Migrations
                     b.ToTable("User");
                 });
 
-            modelBuilder.Entity("ShopApi.Models.User.UserAccount", b =>
+            modelBuilder.Entity("ShopApi.Models.Users.UserAccount", b =>
                 {
                     b.Property<string>("Id")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasMaxLength(34)
+                        .HasColumnType("nvarchar(34)");
 
                     b.Property<DateTimeOffset>("DateCreated")
                         .HasColumnType("datetimeoffset");
@@ -114,9 +117,9 @@ namespace ShopApi.Migrations
                     b.ToTable("UserAccount");
                 });
 
-            modelBuilder.Entity("ShopApi.Models.User.AuthenticationProvider", b =>
+            modelBuilder.Entity("ShopApi.Models.Users.AuthenticationProvider", b =>
                 {
-                    b.HasOne("ShopApi.Models.User.User", "User")
+                    b.HasOne("ShopApi.Models.Users.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -125,9 +128,9 @@ namespace ShopApi.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("ShopApi.Models.User.UserAccount", b =>
+            modelBuilder.Entity("ShopApi.Models.Users.UserAccount", b =>
                 {
-                    b.HasOne("ShopApi.Models.User.User", "User")
+                    b.HasOne("ShopApi.Models.Users.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
