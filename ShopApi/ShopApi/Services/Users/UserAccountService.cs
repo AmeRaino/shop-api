@@ -1,30 +1,25 @@
-﻿using Microsoft.AspNetCore.Cryptography.KeyDerivation;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using ShopApi.EntityFrameworkCore;
-using ShopApi.Models.User;
+using ShopApi.Models.Users;
 using ShopApi.Utils;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Threading.Tasks;
 
 namespace ShopApi.Services
 {
 
-    public interface IAccountService
+    public interface IUserAccountService
     {
         Task<User> AuthenticateUserAccount(string username, string password);
-        //Task<User> Register(UserRegister userRegister);
+        Task<UserAccount> Register(UserAccount userAccount, string password);
     }
 
-    public class AccountService : IAccountService
+    public class UserAccountService : IUserAccountService
     {
         private readonly IServiceScopeFactory scopeFactory;
-        public AccountService(IServiceScopeFactory scopeFactory)
+        public UserAccountService(IServiceScopeFactory scopeFactory)
         {
             this.scopeFactory = scopeFactory;
         }
@@ -56,7 +51,7 @@ namespace ShopApi.Services
                 //    iterationCount: 10000,
                 //    numBytesRequested: 256 / 8));
 
-                string hashed = IdentityHelper.HashPasswordWithSalt(password, userPasswordSalt);
+                string hashed = PasswordHelper.HashPasswordWithSalt(password, userPasswordSalt);
 
                 if (hashed.Equals(userPasswordHashed))
                 {
@@ -69,12 +64,11 @@ namespace ShopApi.Services
             }
         }
 
-        public async Task<UserAccount> Register(string username, string password, User user)
+        public async Task<UserAccount> Register(UserAccount userAccount, string password)
         {
             using (var scope = scopeFactory.CreateScope())
             {
                 var appDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-                var userAccount = new UserAccount();
 
                 //byte[] salt = new byte[128 / 8];
                 //using (var rng = RandomNumberGenerator.Create())
@@ -89,16 +83,14 @@ namespace ShopApi.Services
                 //    iterationCount: 10000,
                 //    numBytesRequested: 256 / 8));
 
-                var result = IdentityHelper.HashPasswordWithRandomSalt(password);
+                var result = PasswordHelper.HashPasswordWithRandomSalt(password);
 
                 userAccount.Id = "";
-                userAccount.Username = username;
                 userAccount.PasswordHash = result.hashed;
                 userAccount.PasswordSalt = result.salt;
                 userAccount.DateCreated = DateTimeOffset.Now;
-                userAccount.User = user;
 
-                await appDb.UserAccounts.AddAsync(new UserAccount());
+                await appDb.UserAccounts.AddAsync(userAccount);
                 appDb.SaveChanges();
 
                 return userAccount;

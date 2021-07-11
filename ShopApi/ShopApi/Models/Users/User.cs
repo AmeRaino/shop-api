@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace ShopApi.Models.User
+namespace ShopApi.Models.Users
 {
     [Table("User")]
     public class User
@@ -33,6 +33,8 @@ namespace ShopApi.Models.User
         public string Phone { get; set; }
 
         public long Birthday { get; set; }
+
+        public DateTimeOffset DateCreated { get; set; }
 
     }
 }

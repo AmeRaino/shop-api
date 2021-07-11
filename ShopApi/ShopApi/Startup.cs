@@ -29,7 +29,7 @@ namespace ShopApi
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
-            services.AddSingleton<AccountService>();
+            services.AddSingleton<UserAccountService>();
             services.AddDbContext<AppDbContext>();
         }
 
