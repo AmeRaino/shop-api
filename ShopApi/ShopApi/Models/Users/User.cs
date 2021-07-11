@@ -30,11 +30,15 @@ namespace ShopApi.Models.Users
         public string Email { get; set; }
 
         [StringLength(20)]
-        public string Phone { get; set; }
+        public string? Phone { get; set; }
+        [StringLength(255)]
+        public string? ImageUrl { get; set; }
 
-        public long Birthday { get; set; }
+        public long? Birthday { get; set; }
 
         public DateTimeOffset DateCreated { get; set; }
+
+        // Navigation props
 
     }
 }

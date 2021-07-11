@@ -12,7 +12,7 @@ namespace ShopApi.Services
 
     public interface IUserAccountService
     {
-        Task<User> AuthenticateUserAccount(string username, string password);
+        Task<User> AuthenticatAccount(string username, string password);
         Task<UserAccount> Register(UserAccount userAccount, string password);
     }
 
@@ -24,64 +24,71 @@ namespace ShopApi.Services
             this.scopeFactory = scopeFactory;
         }
 
-        public async Task<User> AuthenticateUserAccount(string username, string password)
+        // Login
+        public async Task<User> AuthenticatAccount(string username, string password)
         {
+            if (string.IsNullOrWhiteSpace(username))
+                throw new ApplicationException("Username is required.");
+
+            if (string.IsNullOrWhiteSpace(password))
+                throw new ApplicationException("Password is required.");
+
             using (var scope = scopeFactory.CreateScope())
             {
                 var appDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-                if (string.IsNullOrWhiteSpace(username))
-                    throw new ApplicationException("Username is required!");
 
-                if (string.IsNullOrWhiteSpace(password))
-                    throw new ApplicationException("Password is required!");
-
-                var found = await appDb.UserAccounts.Where(x => x.Username == username).FirstOrDefaultAsync();
-
+                var found = await appDb.UserAccounts
+                    .Where(x => x.Username == username)
+                    .Include(account => account.User)
+                    .FirstOrDefaultAsync();
 
                 if (found == null)
-                    throw new ApplicationException("Invalid username");
+                    throw new ApplicationException("That username is invalid.");
 
-                var userPasswordHashed = found.PasswordHash;
-                string userPasswordSalt = found.PasswordSalt;
+                if (found.User == null)
+                    throw new ApplicationException("User not found.");
 
-                //string hashed = Convert.ToBase64String(KeyDerivation.Pbkdf2(
-                //    password: password,
-                //    salt: Convert.FromBase64String(userPasswordSalt),
-                //    prf: KeyDerivationPrf.HMACSHA1,
-                //    iterationCount: 10000,
-                //    numBytesRequested: 256 / 8));
+                string hashed = PasswordHelper.HashPasswordWithSalt(password, found.PasswordSalt);
 
-                string hashed = PasswordHelper.HashPasswordWithSalt(password, userPasswordSalt);
-
-                if (hashed.Equals(userPasswordHashed))
+                if (hashed.Equals(found.PasswordHash))
                 {
                     return found.User;
                 }
                 else
                 {
-                    throw new ApplicationException("Invalid username");
+                    throw new ApplicationException("Incorrect password.");
                 }
             }
         }
 
-        public async Task<UserAccount> Register(UserAccount userAccount, string password)
+        bool IsExistedUsername(string username)
         {
             using (var scope = scopeFactory.CreateScope())
             {
                 var appDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-                //byte[] salt = new byte[128 / 8];
-                //using (var rng = RandomNumberGenerator.Create())
-                //{
-                //    rng.GetBytes(salt);
-                //}
+                if (appDb.UserAccounts.Any(x => x.Username == username))
+                    return true;
 
-                //string hashed = Convert.ToBase64String(KeyDerivation.Pbkdf2(
-                //    password: password,
-                //    salt: salt,
-                //    prf: KeyDerivationPrf.HMACSHA1,
-                //    iterationCount: 10000,
-                //    numBytesRequested: 256 / 8));
+                return false;
+            }
+        }
+
+        // Signup
+        public async Task<UserAccount> Register(UserAccount userAccount, string password)
+        {
+            if (string.IsNullOrWhiteSpace(userAccount.Username))
+                throw new ApplicationException("Username is required.");
+
+            if (IsExistedUsername(userAccount.Username))
+                throw new ApplicationException("That username is already taken. Please try another.");
+
+            if (string.IsNullOrWhiteSpace(password))
+                throw new ApplicationException("Password is required.");
+
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var appDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
                 var result = PasswordHelper.HashPasswordWithRandomSalt(password);
 

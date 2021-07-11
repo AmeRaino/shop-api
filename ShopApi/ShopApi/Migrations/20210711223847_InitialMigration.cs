@@ -16,7 +16,8 @@ namespace ShopApi.Migrations
                     Lastname = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
                     Email = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
                     Phone = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
-                    Birthday = table.Column<long>(type: "bigint", nullable: false),
+                    ImageUrl = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
+                    Birthday = table.Column<long>(type: "bigint", nullable: true),
                     DateCreated = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
                 },
                 constraints: table =>
@@ -29,7 +30,7 @@ namespace ShopApi.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
-                    KeyProvided = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
+                    KeyProvided = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: true),
                     UserId = table.Column<string>(type: "nvarchar(32)", maxLength: 32, nullable: false),
                     ProviderType = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false)
                 },
@@ -49,7 +50,7 @@ namespace ShopApi.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "nvarchar(34)", maxLength: 34, nullable: false),
-                    UserId = table.Column<string>(type: "nvarchar(32)", maxLength: 32, nullable: false),
+                    UserId = table.Column<string>(type: "nvarchar(32)", maxLength: 32, nullable: true),
                     Username = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
                     PasswordHash = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
                     PasswordSalt = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
@@ -63,7 +64,7 @@ namespace ShopApi.Migrations
                         column: x => x.UserId,
                         principalTable: "User",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateIndex(

@@ -14,7 +14,7 @@ namespace ShopApi.Models.Users
         [StringLength(34)]
         public string Id { get; set; }
 
-        [Required]
+        [ForeignKey("User")]
         [StringLength(32)]
         public string UserId { get; set; }
 
@@ -32,8 +32,7 @@ namespace ShopApi.Models.Users
 
         public DateTimeOffset DateCreated { get; set; }
 
-        // Relation props
-        [ForeignKey("UserId")]
-        public User User { get; set; }
+        // Navigation props
+        public virtual User User { get; set; }
     }
 }

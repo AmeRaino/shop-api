@@ -28,5 +28,6 @@ namespace ShopApi.EntityFrameworkCore
             .Build();
             optionsBuilder.UseSqlServer(configuration.GetConnectionString("Default"));
         }
+            
     }
 }

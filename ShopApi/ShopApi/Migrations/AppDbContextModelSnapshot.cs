@@ -26,7 +26,6 @@ namespace ShopApi.Migrations
                         .HasColumnType("nvarchar(128)");
 
                     b.Property<string>("KeyProvided")
-                        .IsRequired()
                         .HasMaxLength(128)
                         .HasColumnType("nvarchar(128)");
 
@@ -54,7 +53,7 @@ namespace ShopApi.Migrations
                         .HasMaxLength(32)
                         .HasColumnType("nvarchar(32)");
 
-                    b.Property<long>("Birthday")
+                    b.Property<long?>("Birthday")
                         .HasColumnType("bigint");
 
                     b.Property<DateTimeOffset>("DateCreated")
@@ -65,6 +64,10 @@ namespace ShopApi.Migrations
                         .HasColumnType("nvarchar(255)");
 
                     b.Property<string>("Firstname")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("ImageUrl")
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
@@ -101,7 +104,6 @@ namespace ShopApi.Migrations
                         .HasColumnType("nvarchar(255)");
 
                     b.Property<string>("UserId")
-                        .IsRequired()
                         .HasMaxLength(32)
                         .HasColumnType("nvarchar(32)");
 
@@ -132,9 +134,7 @@ namespace ShopApi.Migrations
                 {
                     b.HasOne("ShopApi.Models.Users.User", "User")
                         .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("UserId");
 
                     b.Navigation("User");
                 });

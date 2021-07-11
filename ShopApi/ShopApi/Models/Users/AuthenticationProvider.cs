@@ -22,7 +22,6 @@ namespace ShopApi.Models.Users
         [StringLength(128)]
         public string Id { get; set; }
 
-        [Required]
         [StringLength(128)]
         public string KeyProvided { get; set; }
 
@@ -43,6 +42,6 @@ namespace ShopApi.Models.Users
         public ProviderType ProviderType;
 
         [ForeignKey("UserId")]
-        public User User { get; set; }
+        public virtual User User { get; set; }
     }
 }
