@@ -52,5 +52,19 @@ namespace ShopApi.Utils
                 return false;
             }
         }
+
+        public static bool IsValidUrl(string url)
+        {
+            try
+            {
+                // Copied : https://www.regextester.com/94502
+                return Regex.IsMatch(url, @"^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$",
+                    RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(250));
+            }
+            catch (RegexMatchTimeoutException)
+            {
+                return false;
+            }
+        }
     }
 }

@@ -4,7 +4,7 @@ using System.Security.Cryptography;
 
 namespace ShopApi.Utils
 {
-    public static class PasswordHelper
+    public static class PasswordUtil
     {
         public static string HashPasswordWithSalt(string password, string salt)
         {

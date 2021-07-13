@@ -5,12 +5,12 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using ShopApi.EntityFrameworkCore;
+using ShopApi.Entity;
 
 namespace ShopApi.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20210711223847_InitialMigration")]
+    [Migration("20210713120502_InitialMigration")]
     partial class InitialMigration
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

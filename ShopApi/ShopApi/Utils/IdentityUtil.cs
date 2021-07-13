@@ -2,7 +2,7 @@
 
 namespace ShopApi.Utils
 {
-    public static class IdentityHelper
+    public static class IdentityUtil
     {
         public static string GenerateId()
         {

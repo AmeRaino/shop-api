@@ -72,6 +72,10 @@ C:\Workspace\shop-api\ShopApi\ShopApi\bin\Debug\netcoreapp3.1\ShopApi.runtimecon
 C:\Workspace\shop-api\ShopApi\ShopApi\bin\Debug\netcoreapp3.1\ShopApi.dll
 C:\Workspace\shop-api\ShopApi\ShopApi\bin\Debug\netcoreapp3.1\ShopApi.pdb
 C:\Workspace\shop-api\ShopApi\ShopApi\bin\Debug\netcoreapp3.1\Humanizer.dll
+C:\Workspace\shop-api\ShopApi\ShopApi\bin\Debug\netcoreapp3.1\Microsoft.AspNetCore.Cryptography.Internal.dll
+C:\Workspace\shop-api\ShopApi\ShopApi\bin\Debug\netcoreapp3.1\Microsoft.AspNetCore.Cryptography.KeyDerivation.dll
+C:\Workspace\shop-api\ShopApi\ShopApi\bin\Debug\netcoreapp3.1\Microsoft.AspNetCore.JsonPatch.dll
+C:\Workspace\shop-api\ShopApi\ShopApi\bin\Debug\netcoreapp3.1\Microsoft.AspNetCore.Mvc.NewtonsoftJson.dll
 C:\Workspace\shop-api\ShopApi\ShopApi\bin\Debug\netcoreapp3.1\Microsoft.Data.SqlClient.dll
 C:\Workspace\shop-api\ShopApi\ShopApi\bin\Debug\netcoreapp3.1\Microsoft.EntityFrameworkCore.dll
 C:\Workspace\shop-api\ShopApi\ShopApi\bin\Debug\netcoreapp3.1\Microsoft.EntityFrameworkCore.Abstractions.dll
@@ -96,6 +100,7 @@ C:\Workspace\shop-api\ShopApi\ShopApi\bin\Debug\netcoreapp3.1\Microsoft.Identity
 C:\Workspace\shop-api\ShopApi\ShopApi\bin\Debug\netcoreapp3.1\Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
 C:\Workspace\shop-api\ShopApi\ShopApi\bin\Debug\netcoreapp3.1\Microsoft.IdentityModel.Tokens.dll
 C:\Workspace\shop-api\ShopApi\ShopApi\bin\Debug\netcoreapp3.1\Newtonsoft.Json.dll
+C:\Workspace\shop-api\ShopApi\ShopApi\bin\Debug\netcoreapp3.1\Newtonsoft.Json.Bson.dll
 C:\Workspace\shop-api\ShopApi\ShopApi\bin\Debug\netcoreapp3.1\System.Collections.Immutable.dll
 C:\Workspace\shop-api\ShopApi\ShopApi\bin\Debug\netcoreapp3.1\System.ComponentModel.Annotations.dll
 C:\Workspace\shop-api\ShopApi\ShopApi\bin\Debug\netcoreapp3.1\System.Configuration.ConfigurationManager.dll
@@ -127,9 +132,3 @@ C:\Workspace\shop-api\ShopApi\ShopApi\obj\Debug\netcoreapp3.1\ShopApi.csproj.Cop
 C:\Workspace\shop-api\ShopApi\ShopApi\obj\Debug\netcoreapp3.1\ShopApi.dll
 C:\Workspace\shop-api\ShopApi\ShopApi\obj\Debug\netcoreapp3.1\ShopApi.pdb
 C:\Workspace\shop-api\ShopApi\ShopApi\obj\Debug\netcoreapp3.1\ShopApi.genruntimeconfig.cache
-C:\Workspace\shop-api\ShopApi\ShopApi\obj\Debug\netcoreapp3.1\ShopApi.csproj.AssemblyReference.cache
-C:\Workspace\shop-api\ShopApi\ShopApi\bin\Debug\netcoreapp3.1\Microsoft.AspNetCore.Cryptography.Internal.dll
-C:\Workspace\shop-api\ShopApi\ShopApi\bin\Debug\netcoreapp3.1\Microsoft.AspNetCore.Cryptography.KeyDerivation.dll
-C:\Workspace\shop-api\ShopApi\ShopApi\bin\Debug\netcoreapp3.1\Microsoft.AspNetCore.JsonPatch.dll
-C:\Workspace\shop-api\ShopApi\ShopApi\bin\Debug\netcoreapp3.1\Microsoft.AspNetCore.Mvc.NewtonsoftJson.dll
-C:\Workspace\shop-api\ShopApi\ShopApi\bin\Debug\netcoreapp3.1\Newtonsoft.Json.Bson.dll

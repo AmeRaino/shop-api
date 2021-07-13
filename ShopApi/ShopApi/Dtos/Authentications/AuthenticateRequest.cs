@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace ShopApi.Dtos.Accounts
+namespace ShopApi.Dtos.Authentications
 {
-    public class AccountAuthenticateModel
+    public class AuthenticateRequest
     {
         public string Username { get; set; }
         public string Password { get; set; }

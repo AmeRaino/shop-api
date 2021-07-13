@@ -15,10 +15,10 @@ namespace ShopApi.Models.Users
         public string Id { get; set; }
 
         [StringLength(255)]
-        public string Firstname { get; set; }
+        public string? Firstname { get; set; }
 
         [StringLength(255)]
-        public string Lastname { get; set; }
+        public string? Lastname { get; set; }
 
 
         [NotMapped]
@@ -27,7 +27,7 @@ namespace ShopApi.Models.Users
         }
 
         [StringLength(255)]
-        public string Email { get; set; }
+        public string? Email { get; set; }
 
         [StringLength(20)]
         public string? Phone { get; set; }

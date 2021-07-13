@@ -11,8 +11,9 @@ namespace ShopApi.Models.Users
 
     public enum ProviderType
     {
-        Google = 0,
-        Facebook = 1,
+        Undefined,
+        Google = 1,
+        Facebook = 2,
     }
 
     [Table("AuthenticationProvider")]
@@ -39,7 +40,7 @@ namespace ShopApi.Models.Users
         }
 
         [NotMapped]
-        public ProviderType ProviderType;
+        public ProviderType ProviderType { get; set; }
 
         [ForeignKey("UserId")]
         public virtual User User { get; set; }

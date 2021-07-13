@@ -25,5 +25,9 @@
     <Folder Include="Migrations\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="..\.dockerignore" Link="Startup\.dockerignore" />
+  </ItemGroup>
+
 
 </Project>
