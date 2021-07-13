@@ -25,6 +25,7 @@ namespace ShopApi.Services.Users
         AuthenticateResponse Authenticate(AuthenticateRequest model, string ipAddress);
         AuthenticateResponse RefreshToken(string token, string ipAddress);
         void RevokeToken(string token, string ipAddress);
+        ThirdPartyAuthenticateResponse Authenticate3rdPartyAsync(ThirdPartyAuthenticateRequest model);
         Task<IEnumerable<User>> GetAllAsync();
         Task<User> GetByIdAsync(string Id);
         void Update(string id, UpdateUserModel model);
@@ -32,7 +33,7 @@ namespace ShopApi.Services.Users
         void VerifyEmail(string token);
         void ForgotPassword(ForgotPasswordModel model, string origin);
         void ResetPassword(ResetPasswordRequest model);
-        Task<ThirdPartyAuthenticateResponse> Authenticate3rdPartyAsync(ThirdPartyAuthenticateRequest model);
+        
     }
     public class UserService : IUserService
     {
@@ -50,168 +51,7 @@ namespace ShopApi.Services.Users
             this.scopeFactory = scopeFactory;
             _appSettings = appSettings.Value;
             _emailService = emailService;
-        }
-
-        #region Get User
-        public async Task<User> GetByIdAsync(string Id)
-        {
-            using (var scope = scopeFactory.CreateScope())
-            {
-                var appDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-                return await appDb.Users.SingleOrDefaultAsync(x => x.Id == Id);
-            }
-        }
-
-        public async Task<IEnumerable<User>> GetAllAsync()
-        {
-            using (var scope = scopeFactory.CreateScope())
-            {
-                var appDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-                return await appDb.Users.ToListAsync();
-            }
-        }
-
-        #endregion
-
-        #region Update User
-        public void Update(string id, UpdateUserModel model)
-        {
-            using (var scope = scopeFactory.CreateScope())
-            {
-                var appDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-                var user = appDb.Users.Where(x => x.Id == id).FirstOrDefault();
-                if (user == null)
-                    throw new ApplicationException("User not found.");
-
-                if (!string.IsNullOrEmpty(model.Firstname))
-                    user.Firstname = model.Firstname;
-
-                if (!string.IsNullOrEmpty(model.Lastname))
-                    user.Lastname = model.Lastname;
-
-                if (!string.IsNullOrEmpty(model.Phone))
-                    user.Phone = model.Phone;
-
-                if (!string.IsNullOrEmpty(model.Email))
-                    user.Email = model.Email;
-
-                if (!string.IsNullOrEmpty(model.ImageUrl))
-                    user.ImageUrl = model.ImageUrl;
-
-                if (model.Birthday != null)
-                    user.Birthday = model.Birthday;
-
-                appDb.SaveChanges();
-            }
-        }
-        #endregion
-
-        #region Register
-        public void Register(UserRegisterRequest model, string origin)
-        {
-            // check
-            checkValidModel(model);
-
-            var user = new User();
-            user.CopyPropertiesFrom(model);
-            user.Id = IdentityUtil.GenerateId();
-            user.Role = Role.User;
-            user.Created = DateTimeOffset.Now;
-            user.VerificationToken = randomTokenString();
-
-            var account = new UserAccount();
-            account.CopyPropertiesFrom(model);
-
-            // hash password
-            var hashedResult = PasswordUtil.HashPasswordWithRandomSalt(model.Password);
-            account.Id = String.Format("AC{0}", user.Id);
-            account.PasswordHash = hashedResult.hashed;
-            account.PasswordSalt = hashedResult.salt;
-            account.Created = DateTimeOffset.Now;
-            account.User = user;
-
-            using (var scope = scopeFactory.CreateScope())
-            {
-                var appDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-
-                // save account
-                appDb.UserAccounts.Add(account);
-                appDb.SaveChanges();
-
-                // save mail
-                sendVerificationEmail(user, origin);
-            }
-        }
-
-        public void VerifyEmail(string token)
-        {
-            using (var scope = scopeFactory.CreateScope())
-            {
-                var appDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-
-                var user = appDb.Users.SingleOrDefault(x => x.VerificationToken == token);
-
-                if (user == null) throw new AppException("Verification failed");
-
-                user.VerificationToken = null;
-                user.Verified = DateTime.Now;
-
-                appDb.Users.Update(user);
-                appDb.SaveChanges();
-            }
-        }
-
-        #endregion
-
-        public void ForgotPassword(ForgotPasswordModel model, string origin)
-        {
-            using (var scope = scopeFactory.CreateScope())
-            {
-                var appDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-                var user = appDb.Users.SingleOrDefault(x => x.Email == model.Email);
-                if (user == null) return;
-
-                // create reset token that expired after 15 mintutes
-                user.ResetToken = randomTokenString();
-                user.ResetTokenExpires = DateTime.UtcNow.AddMinutes(15);
-
-                appDb.Users.Update(user);
-                appDb.SaveChanges();
-
-                //send mail
-                sendPasswordResetEmail(user, origin);
-            }
-        }
-
-        public void ResetPassword(ResetPasswordRequest model)
-        {
-            using (var scope = scopeFactory.CreateScope())
-            {
-                var appDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-                var user = appDb.Users.SingleOrDefault(x =>
-                    x.ResetToken == model.Token &&
-                    x.ResetTokenExpires > DateTime.UtcNow);
-
-                if (user == null)
-                    throw new AppException("Invalid token");
-
-                //match account 
-                var account = appDb.UserAccounts.SingleOrDefault(x => x.UserId == user.Id);
-                if (account == null)
-                    throw new AppException("Invalid token");
-
-                // update password and remove reset token
-                var hashedResult = PasswordUtil.HashPasswordWithRandomSalt(model.Password);
-                account.PasswordHash = hashedResult.hashed;
-                account.PasswordSalt = hashedResult.salt;
-                user.ResetToken = null;
-                user.ResetTokenExpires = null;
-                user.PasswordReset = DateTime.UtcNow;
-
-                appDb.Users.Update(user);
-                appDb.UserAccounts.Update(account);
-                appDb.SaveChanges();
-            }
+            _mapper = mapper;
         }
 
         #region Authenticate
@@ -308,21 +148,21 @@ namespace ShopApi.Services.Users
             }
         }
 
-        public async Task<ThirdPartyAuthenticateResponse> Authenticate3rdPartyAsync(ThirdPartyAuthenticateRequest model)
+        public ThirdPartyAuthenticateResponse Authenticate3rdPartyAsync(ThirdPartyAuthenticateRequest model)
         {
             checkValidModel(model);
             using (var scope = scopeFactory.CreateScope())
             {
                 var appDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-                var found = await appDb.AuthenticationProviders
+                var found = appDb.AuthenticationProviders
                     .Where(x => x.Id == String.Format("{0}{1}", model.ProviderType.ToString(), model.KeyProvided))
                     .Include(x => x.User)
-                    .FirstOrDefaultAsync();
+                    .FirstOrDefault();
 
                 if (found == null)
                 {
-                    var newAuth = await insertAuthenticationProviderAsync(model);
+                    var newAuth = insertAuthenticationProviderAsync(model);
                     var response = new ThirdPartyAuthenticateResponse
                     {
                         Token = generateJwtToken(newAuth.User)
@@ -342,11 +182,7 @@ namespace ShopApi.Services.Users
             }
         }
 
-        #endregion
-
-        #region Helper Function
-
-        private async Task<AuthenticationProvider> insertAuthenticationProviderAsync(ThirdPartyAuthenticateRequest model)
+        private AuthenticationProvider insertAuthenticationProviderAsync(ThirdPartyAuthenticateRequest model)
         {
             var authenticationProvider = new AuthenticationProvider();
             authenticationProvider.User = new User
@@ -362,11 +198,176 @@ namespace ShopApi.Services.Users
 
                 authenticationProvider.Id = String.Format("{0}{1}", authenticationProvider.ProviderTypeString, authenticationProvider.KeyProvided);
                 appDb.AuthenticationProviders.Add(authenticationProvider);
-                await appDb.SaveChangesAsync();
+                appDb.SaveChanges();
                 return authenticationProvider;
             }
         }
 
+        #endregion
+
+        #region Common Methods ( Get, Update, Delete )
+        public async Task<User> GetByIdAsync(string Id)
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var appDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                return await appDb.Users.SingleOrDefaultAsync(x => x.Id == Id);
+            }
+        }
+
+        public async Task<IEnumerable<User>> GetAllAsync()
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var appDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                return await appDb.Users.ToListAsync();
+            }
+        }
+
+        public void Update(string id, UpdateUserModel model)
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var appDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                var user = appDb.Users.Where(x => x.Id == id).FirstOrDefault();
+                if (user == null)
+                    throw new ApplicationException("User not found.");
+
+                if (!string.IsNullOrEmpty(model.Firstname))
+                    user.Firstname = model.Firstname;
+
+                if (!string.IsNullOrEmpty(model.Lastname))
+                    user.Lastname = model.Lastname;
+
+                if (!string.IsNullOrEmpty(model.Phone))
+                    user.Phone = model.Phone;
+
+                if (!string.IsNullOrEmpty(model.Email))
+                    user.Email = model.Email;
+
+                if (!string.IsNullOrEmpty(model.ImageUrl))
+                    user.ImageUrl = model.ImageUrl;
+
+                if (model.Birthday != null)
+                    user.Birthday = model.Birthday;
+
+                appDb.SaveChanges();
+            }
+        }
+        #endregion
+
+        #region Register
+        public void Register(UserRegisterRequest model, string origin)
+        {
+            // check
+            checkValidModel(model);
+
+            var user = new User();
+            user.CopyPropertiesFrom(model);
+            user.Id = IdentityUtil.GenerateId();
+            user.Role = Role.User;
+            user.Created = DateTimeOffset.Now;
+            user.VerificationToken = randomTokenString();
+
+            var account = new UserAccount();
+            account.CopyPropertiesFrom(model);
+
+            // hash password
+            var hashedResult = PasswordUtil.HashPasswordWithRandomSalt(model.Password);
+            account.Id = String.Format("AC{0}", user.Id);
+            account.PasswordHash = hashedResult.hashed;
+            account.PasswordSalt = hashedResult.salt;
+            account.Created = DateTimeOffset.Now;
+            account.User = user;
+
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var appDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+                // save account
+                appDb.UserAccounts.Add(account);
+                appDb.SaveChanges();
+
+                // save mail
+                sendVerificationEmail(user, origin);
+            }
+        }
+
+        public void VerifyEmail(string token)
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var appDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+                var user = appDb.Users.SingleOrDefault(x => x.VerificationToken == token);
+
+                if (user == null) throw new AppException("Verification failed");
+
+                user.VerificationToken = null;
+                user.Verified = DateTime.Now;
+
+                appDb.Users.Update(user);
+                appDb.SaveChanges();
+            }
+        }
+        #endregion
+
+        #region Password
+
+        public void ForgotPassword(ForgotPasswordModel model, string origin)
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var appDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                var user = appDb.Users.SingleOrDefault(x => x.Email == model.Email);
+                if (user == null) return;
+
+                // create reset token that expired after 15 mintutes
+                user.ResetToken = randomTokenString();
+                user.ResetTokenExpires = DateTime.UtcNow.AddMinutes(15);
+
+                appDb.Users.Update(user);
+                appDb.SaveChanges();
+
+                //send mail
+                sendPasswordResetEmail(user, origin);
+            }
+        }
+
+        public void ResetPassword(ResetPasswordRequest model)
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var appDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                var user = appDb.Users.SingleOrDefault(x =>
+                    x.ResetToken == model.Token &&
+                    x.ResetTokenExpires > DateTime.UtcNow);
+
+                if (user == null)
+                    throw new AppException("Invalid token");
+
+                //match account 
+                var account = appDb.UserAccounts.SingleOrDefault(x => x.UserId == user.Id);
+                if (account == null)
+                    throw new AppException("Invalid token");
+
+                // update password and remove reset token
+                var hashedResult = PasswordUtil.HashPasswordWithRandomSalt(model.Password);
+                account.PasswordHash = hashedResult.hashed;
+                account.PasswordSalt = hashedResult.salt;
+                user.ResetToken = null;
+                user.ResetTokenExpires = null;
+                user.PasswordReset = DateTime.UtcNow;
+
+                appDb.Users.Update(user);
+                appDb.UserAccounts.Update(account);
+                appDb.SaveChanges();
+            }
+        }
+
+        #endregion
+
+        #region Helper Methods
 
         private void sendPasswordResetEmail(User account, string origin)
         {
@@ -390,6 +391,7 @@ namespace ShopApi.Services.Users
                          {message}"
             );
         }
+
         private void sendVerificationEmail(User account, string origin)
         {
             string message;
@@ -532,9 +534,13 @@ namespace ShopApi.Services.Users
 
         private void removeOldRefreshTokens(User user)
         {
-            user.RefreshTokens.RemoveAll(x =>
-                !x.IsActive &&
-                x.Created.AddDays(_appSettings.RefreshTokenTTL) <= DateTime.UtcNow);
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var appDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                user.RefreshTokens.RemoveAll(x => !x.IsActive && x.Created.AddDays(_appSettings.RefreshTokenTTL) <= DateTime.UtcNow);
+                appDb.Update(user);
+                appDb.SaveChanges();
+            }
         }
 
         #endregion
