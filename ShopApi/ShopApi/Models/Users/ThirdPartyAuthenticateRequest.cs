@@ -1,10 +1,6 @@
-﻿using ShopApi.Models.Users;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using ShopApi.Entity.Models;
 
-namespace ShopApi.Dtos.Authentications
+namespace ShopApi.Models.Users
 {
     public class ThirdPartyAuthenticateRequest
     {

@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using ShopApi.Entity;
+using ShopApi.Helpers;
 
 namespace ShopApi.Migrations
 {
@@ -19,7 +19,7 @@ namespace ShopApi.Migrations
                 .HasAnnotation("ProductVersion", "5.0.7")
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-            modelBuilder.Entity("ShopApi.Models.Users.AuthenticationProvider", b =>
+            modelBuilder.Entity("ShopApi.Entity.Models.AuthenticationProvider", b =>
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(128)
@@ -47,7 +47,7 @@ namespace ShopApi.Migrations
                     b.ToTable("AuthenticationProvider");
                 });
 
-            modelBuilder.Entity("ShopApi.Models.Users.User", b =>
+            modelBuilder.Entity("ShopApi.Entity.User", b =>
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(32)
@@ -56,7 +56,7 @@ namespace ShopApi.Migrations
                     b.Property<long?>("Birthday")
                         .HasColumnType("bigint");
 
-                    b.Property<DateTimeOffset>("DateCreated")
+                    b.Property<DateTimeOffset>("Created")
                         .HasColumnType("datetimeoffset");
 
                     b.Property<string>("Email")
@@ -75,22 +75,43 @@ namespace ShopApi.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
+                    b.Property<DateTime?>("PasswordReset")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Phone")
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("ResetToken")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ResetTokenExpires")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Role")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset?>("Updated")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("VerificationToken")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset?>("Verified")
+                        .HasColumnType("datetimeoffset");
 
                     b.HasKey("Id");
 
                     b.ToTable("User");
                 });
 
-            modelBuilder.Entity("ShopApi.Models.Users.UserAccount", b =>
+            modelBuilder.Entity("ShopApi.Entity.UserAccount", b =>
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(34)
                         .HasColumnType("nvarchar(34)");
 
-                    b.Property<DateTimeOffset>("DateCreated")
+                    b.Property<DateTimeOffset>("Created")
                         .HasColumnType("datetimeoffset");
 
                     b.Property<string>("PasswordHash")
@@ -119,9 +140,9 @@ namespace ShopApi.Migrations
                     b.ToTable("UserAccount");
                 });
 
-            modelBuilder.Entity("ShopApi.Models.Users.AuthenticationProvider", b =>
+            modelBuilder.Entity("ShopApi.Entity.Models.AuthenticationProvider", b =>
                 {
-                    b.HasOne("ShopApi.Models.Users.User", "User")
+                    b.HasOne("ShopApi.Entity.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -130,9 +151,58 @@ namespace ShopApi.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("ShopApi.Models.Users.UserAccount", b =>
+            modelBuilder.Entity("ShopApi.Entity.User", b =>
                 {
-                    b.HasOne("ShopApi.Models.Users.User", "User")
+                    b.OwnsMany("ShopApi.Entity.RefreshToken", "RefreshTokens", b1 =>
+                        {
+                            b1.Property<int>("Id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("int")
+                                .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                            b1.Property<DateTime>("Created")
+                                .HasColumnType("datetime2");
+
+                            b1.Property<string>("CreatedByIp")
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.Property<DateTime>("Expires")
+                                .HasColumnType("datetime2");
+
+                            b1.Property<string>("ReplacedByToken")
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.Property<DateTime?>("Revoked")
+                                .HasColumnType("datetime2");
+
+                            b1.Property<string>("RevokedByIp")
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.Property<string>("Token")
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.Property<string>("UserId")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(32)");
+
+                            b1.HasKey("Id");
+
+                            b1.HasIndex("UserId");
+
+                            b1.ToTable("RefreshToken");
+
+                            b1.WithOwner("User")
+                                .HasForeignKey("UserId");
+
+                            b1.Navigation("User");
+                        });
+
+                    b.Navigation("RefreshTokens");
+                });
+
+            modelBuilder.Entity("ShopApi.Entity.UserAccount", b =>
+                {
+                    b.HasOne("ShopApi.Entity.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId");
 

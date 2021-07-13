@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace ShopApi.Models.Users
+namespace ShopApi.Entity
 {
     [Table("UserAccount")]
     public class UserAccount
@@ -30,7 +30,7 @@ namespace ShopApi.Models.Users
         [StringLength(255)]
         public string PasswordSalt { get; set; }
 
-        public DateTimeOffset DateCreated { get; set; }
+        public DateTimeOffset Created { get; set; }
 
         // Navigation props
         public virtual User User { get; set; }

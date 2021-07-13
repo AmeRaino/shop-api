@@ -2,13 +2,11 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using ShopApi.Dtos.Authentications;
-using ShopApi.Dtos.Registers;
-using ShopApi.Dtos.Users;
+using ShopApi.Models.Users;
 using ShopApi.Entity;
 using ShopApi.Extensions;
 using ShopApi.Helpers;
-using ShopApi.Models.Users;
+using ShopApi.Entity.Models;
 using ShopApi.Utils;
 using System;
 using System.Collections.Generic;
@@ -17,28 +15,41 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using System.Security.Cryptography;
+using AutoMapper;
 
 namespace ShopApi.Services.Users
 {
     public interface IUserService
     {
+        AuthenticateResponse Authenticate(AuthenticateRequest model, string ipAddress);
+        AuthenticateResponse RefreshToken(string token, string ipAddress);
+        void RevokeToken(string token, string ipAddress);
         Task<IEnumerable<User>> GetAllAsync();
         Task<User> GetByIdAsync(string Id);
         void Update(string id, UpdateUserModel model);
-        Task<User> RegisterAsync(UserRegisterRequest model);
-        Task<AuthenticateResponse> AuthenticateAsync(AuthenticateRequest model);
+        void Register(UserRegisterRequest model, string origin);
+        void VerifyEmail(string token);
+        void ForgotPassword(ForgotPasswordModel model, string origin);
+        void ResetPassword(ResetPasswordRequest model);
         Task<ThirdPartyAuthenticateResponse> Authenticate3rdPartyAsync(ThirdPartyAuthenticateRequest model);
     }
     public class UserService : IUserService
     {
         private readonly IServiceScopeFactory scopeFactory;
+        private readonly IMapper _mapper;
         private readonly AppSettings _appSettings;
+        private readonly IEmailService _emailService;
 
 
-        public UserService(IServiceScopeFactory scopeFactory, IOptions<AppSettings> appSettings)
+        public UserService(IServiceScopeFactory scopeFactory,
+            IMapper mapper,
+            IOptions<AppSettings> appSettings,
+            IEmailService emailService)
         {
             this.scopeFactory = scopeFactory;
             _appSettings = appSettings.Value;
+            _emailService = emailService;
         }
 
         #region Get User
@@ -96,70 +107,204 @@ namespace ShopApi.Services.Users
         #endregion
 
         #region Register
-        public async Task<User> RegisterAsync(UserRegisterRequest model)
+        public void Register(UserRegisterRequest model, string origin)
         {
+            // check
             checkValidModel(model);
 
             var user = new User();
             user.CopyPropertiesFrom(model);
             user.Id = IdentityUtil.GenerateId();
-            user.DateCreated = DateTimeOffset.Now;
+            user.Role = Role.User;
+            user.Created = DateTimeOffset.Now;
+            user.VerificationToken = randomTokenString();
 
             var account = new UserAccount();
             account.CopyPropertiesFrom(model);
+
+            // hash password
             var hashedResult = PasswordUtil.HashPasswordWithRandomSalt(model.Password);
             account.Id = String.Format("AC{0}", user.Id);
             account.PasswordHash = hashedResult.hashed;
             account.PasswordSalt = hashedResult.salt;
-            account.DateCreated = DateTimeOffset.Now;
+            account.Created = DateTimeOffset.Now;
             account.User = user;
 
             using (var scope = scopeFactory.CreateScope())
             {
                 var appDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+                // save account
                 appDb.UserAccounts.Add(account);
-                await appDb.SaveChangesAsync();
-                return user;
+                appDb.SaveChanges();
+
+                // save mail
+                sendVerificationEmail(user, origin);
+            }
+        }
+
+        public void VerifyEmail(string token)
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var appDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+                var user = appDb.Users.SingleOrDefault(x => x.VerificationToken == token);
+
+                if (user == null) throw new AppException("Verification failed");
+
+                user.VerificationToken = null;
+                user.Verified = DateTime.Now;
+
+                appDb.Users.Update(user);
+                appDb.SaveChanges();
             }
         }
 
         #endregion
 
+        public void ForgotPassword(ForgotPasswordModel model, string origin)
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var appDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                var user = appDb.Users.SingleOrDefault(x => x.Email == model.Email);
+                if (user == null) return;
+
+                // create reset token that expired after 15 mintutes
+                user.ResetToken = randomTokenString();
+                user.ResetTokenExpires = DateTime.UtcNow.AddMinutes(15);
+
+                appDb.Users.Update(user);
+                appDb.SaveChanges();
+
+                //send mail
+                sendPasswordResetEmail(user, origin);
+            }
+        }
+
+        public void ResetPassword(ResetPasswordRequest model)
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var appDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                var user = appDb.Users.SingleOrDefault(x =>
+                    x.ResetToken == model.Token &&
+                    x.ResetTokenExpires > DateTime.UtcNow);
+
+                if (user == null)
+                    throw new AppException("Invalid token");
+
+                //match account 
+                var account = appDb.UserAccounts.SingleOrDefault(x => x.UserId == user.Id);
+                if (account == null)
+                    throw new AppException("Invalid token");
+
+                // update password and remove reset token
+                var hashedResult = PasswordUtil.HashPasswordWithRandomSalt(model.Password);
+                account.PasswordHash = hashedResult.hashed;
+                account.PasswordSalt = hashedResult.salt;
+                user.ResetToken = null;
+                user.ResetTokenExpires = null;
+                user.PasswordReset = DateTime.UtcNow;
+
+                appDb.Users.Update(user);
+                appDb.UserAccounts.Update(account);
+                appDb.SaveChanges();
+            }
+        }
 
         #region Authenticate
-        public async Task<AuthenticateResponse> AuthenticateAsync(AuthenticateRequest model)
+        public AuthenticateResponse Authenticate(AuthenticateRequest model, string ipAddress)
         {
             checkValidModel(model);
             using (var scope = scopeFactory.CreateScope())
             {
                 var appDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-                var found = await appDb.UserAccounts
+                var found = appDb.UserAccounts
                     .Where(x => x.Username == model.Username)
                     .Include(account => account.User)
-                    .FirstOrDefaultAsync();
+                    .FirstOrDefault();
 
                 if (found == null)
-                    throw new ApplicationException("That username is invalid.");
+                    throw new ApplicationException("Username or password is incorrect.");
 
-                if (found.User == null)
-                    throw new ApplicationException("User not found.");
+                if (found.User == null || !found.User.IsVerified)
+                    throw new ApplicationException("Username or password is incorrect.");
 
                 string hashed = PasswordUtil.HashPasswordWithSalt(model.Password, found.PasswordSalt);
 
                 if (hashed.Equals(found.PasswordHash))
                 {
+                    // authenticate successfully => generate jwt and refresh token
                     var response = new AuthenticateResponse
                     {
                         Token = generateJwtToken(found.User)
                     };
+                    var refreshToken = generateRefreshToken(ipAddress);
+                    found.User.RefreshTokens.Add(refreshToken);
+
+                    // remove old refresh tokens from account
+                    removeOldRefreshTokens(found.User);
+
+                    // save changes to db
+                    appDb.Update(found);
+                    appDb.SaveChanges();
+
                     response.CopyPropertiesFrom(found.User);
+                    response.RefreshToken = refreshToken.Token;
                     return response;
                 }
                 else
                 {
-                    throw new ApplicationException("Incorrect password.");
+                    throw new ApplicationException("Username or password is incorrect.");
                 }
+            }
+        }
+
+        public AuthenticateResponse RefreshToken(string token, string ipAddress)
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var appDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                var (refreshToken, user) = getRefreshToken(token);
+
+                // replace old refresh token with a new one and save
+                var newRefreshToken = generateRefreshToken(ipAddress);
+                refreshToken.Revoked = DateTime.UtcNow;
+                refreshToken.RevokedByIp = ipAddress;
+                refreshToken.ReplacedByToken = newRefreshToken.Token;
+                user.RefreshTokens.Add(newRefreshToken);
+
+                removeOldRefreshTokens(user);
+
+                appDb.Update(user);
+                appDb.SaveChanges();
+
+                // generate new jwt
+                var jwtToken = generateJwtToken(user);
+
+                var response = new AuthenticateResponse();
+                response.CopyPropertiesFrom(user);
+                response.Token = jwtToken;
+                response.RefreshToken = newRefreshToken.Token;
+                return response;
+            }
+
+        }
+
+        public void RevokeToken(string token, string ipAddress)
+        {
+            var (refreshToken, user) = getRefreshToken(token);
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var appDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                // revoke token and save
+                refreshToken.Revoked = DateTime.UtcNow;
+                refreshToken.RevokedByIp = ipAddress;
+                appDb.Update(user);
+                appDb.SaveChanges();
             }
         }
 
@@ -207,7 +352,7 @@ namespace ShopApi.Services.Users
             authenticationProvider.User = new User
             {
                 Id = IdentityUtil.GenerateId(),
-                DateCreated = DateTimeOffset.Now,
+                Created = DateTimeOffset.Now,
             };
             authenticationProvider.CopyPropertiesFrom(model);
 
@@ -220,6 +365,62 @@ namespace ShopApi.Services.Users
                 await appDb.SaveChangesAsync();
                 return authenticationProvider;
             }
+        }
+
+
+        private void sendPasswordResetEmail(User account, string origin)
+        {
+            string message;
+            if (!string.IsNullOrEmpty(origin))
+            {
+                var resetUrl = $"{origin}/account/reset-password?token={account.ResetToken}";
+                message = $@"<p>Please click the below link to reset your password, the link will be valid for 1 day:</p>
+                             <p><a href=""{resetUrl}"">{resetUrl}</a></p>";
+            }
+            else
+            {
+                message = $@"<p>Please use the below token to reset your password with the <code>/accounts/reset-password</code> api route:</p>
+                             <p><code>{account.ResetToken}</code></p>";
+            }
+
+            _emailService.Send(
+                to: account.Email,
+                subject: "Sign-up Verification API - Reset Password",
+                html: $@"<h4>Reset Password Email</h4>
+                         {message}"
+            );
+        }
+        private void sendVerificationEmail(User account, string origin)
+        {
+            string message;
+            if (!string.IsNullOrEmpty(origin))
+            {
+                var verifyUrl = $"{origin}/account/verify-email?token={account.VerificationToken}";
+                message = $@"<p>Please click the below link to verify your email address:</p>
+                             <p><a href=""{verifyUrl}"">{verifyUrl}</a></p>";
+            }
+            else
+            {
+                message = $@"<p>Please use the below token to verify your email address with the <code>/accounts/verify-email</code> api route:</p>
+                             <p><code>{account.VerificationToken}</code></p>";
+            }
+
+            _emailService.Send(
+                to: account.Email,
+                subject: "Sign-up Verification API - Verify Email",
+                html: $@"<h4>Verify Email</h4>
+                         <p>Thanks for registering!</p>
+                         {message}"
+            );
+        }
+
+        private string randomTokenString()
+        {
+            using var rngCryptoServiceProvider = new RNGCryptoServiceProvider();
+            var randomBytes = new byte[40];
+            rngCryptoServiceProvider.GetBytes(randomBytes);
+            // convert random bytes to hex string
+            return BitConverter.ToString(randomBytes).Replace("-", "");
         }
 
         private void checkValidModel(ThirdPartyAuthenticateRequest model)
@@ -290,6 +491,19 @@ namespace ShopApi.Services.Users
             }
         }
 
+        private (RefreshToken, User) getRefreshToken(string token)
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var appDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                var user = appDb.Users.SingleOrDefault(u => u.RefreshTokens.Any(t => t.Token == token));
+                if (user == null) throw new AppException("Invalid token");
+                var refreshToken = user.RefreshTokens.Single(x => x.Token == token);
+                if (!refreshToken.IsActive) throw new AppException("Invalid token");
+                return (refreshToken, user);
+            }
+        }
+
         private string generateJwtToken(User user)
         {
             // generate token that is valid for 7 days
@@ -303,6 +517,24 @@ namespace ShopApi.Services.Users
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
+        }
+
+        private RefreshToken generateRefreshToken(string ipAddress)
+        {
+            return new RefreshToken
+            {
+                Token = randomTokenString(),
+                Expires = DateTime.UtcNow.AddDays(7),
+                Created = DateTime.UtcNow,
+                CreatedByIp = ipAddress
+            };
+        }
+
+        private void removeOldRefreshTokens(User user)
+        {
+            user.RefreshTokens.RemoveAll(x =>
+                !x.IsActive &&
+                x.Created.AddDays(_appSettings.RefreshTokenTTL) <= DateTime.UtcNow);
         }
 
         #endregion

@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace ShopApi.Models.Users
+namespace ShopApi.Entity
 {
     [Table("User")]
     public class User
@@ -36,7 +36,20 @@ namespace ShopApi.Models.Users
 
         public long? Birthday { get; set; }
 
-        public DateTimeOffset DateCreated { get; set; }
+        public DateTimeOffset Created { get; set; }
+        public DateTimeOffset? Updated { get; set; }
+        public Role Role { get; set; }
+        public string VerificationToken { get; set; }
+        public DateTimeOffset? Verified { get; set; }
+        public bool IsVerified => Verified.HasValue;
+        public string ResetToken { get; set; }
+        public DateTime? ResetTokenExpires { get; set; }
+        public DateTime? PasswordReset { get; set; }
+        public List<RefreshToken> RefreshTokens { get; set; }
+        public bool OwnsToken(string token)
+        {
+            return this.RefreshTokens?.Find(x => x.Token == token) != null;
+        }
 
         // Navigation props
 

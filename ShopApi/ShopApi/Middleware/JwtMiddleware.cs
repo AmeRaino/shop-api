@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using ShopApi.Entity;
+using ShopApi.Helpers;
 using ShopApi.Services.Users;
 using System;
 using System.IdentityModel.Tokens.Jwt;
@@ -8,7 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ShopApi.Helpers
+namespace ShopApi.Middleware
 {
     public class JwtMiddleware
     {
@@ -26,12 +28,12 @@ namespace ShopApi.Helpers
             var token = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
 
             if (token != null)
-                await attachUserToContextAsync(context, userService, token);
+                await attachUserToContext(context, userService, token);
 
             await _next(context);
         }
 
-        private async Task attachUserToContextAsync(HttpContext context, IUserService userService, string token)
+        private async Task attachUserToContext(HttpContext context, IUserService userService, string token)
         {
             try
             {

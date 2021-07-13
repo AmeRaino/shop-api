@@ -1,12 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using ShopApi.Models.Users;
+using ShopApi.Entity;
+using ShopApi.Entity.Models;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
-namespace ShopApi.Entity
+namespace ShopApi.Helpers
 {
     public class AppDbContext : DbContext
     {

@@ -1,9 +1,10 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace ShopApi.Dtos.Authentications
+namespace ShopApi.Models.Users
 {
     public class AuthenticateResponse
     {
@@ -15,5 +16,8 @@ namespace ShopApi.Dtos.Authentications
         public string? Phone { get; set; }
         public string? ImageUrl { get; set; }
         public string Token { get; set; }
+        public bool IsVerified { get; set; }
+        [JsonIgnore] // refresh token is returned in http only cookie
+        public string RefreshToken { get; set; }
     }   
 }

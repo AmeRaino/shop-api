@@ -132,3 +132,9 @@ C:\Workspace\shop-api\ShopApi\ShopApi\obj\Debug\netcoreapp3.1\ShopApi.csproj.Cop
 C:\Workspace\shop-api\ShopApi\ShopApi\obj\Debug\netcoreapp3.1\ShopApi.dll
 C:\Workspace\shop-api\ShopApi\ShopApi\obj\Debug\netcoreapp3.1\ShopApi.pdb
 C:\Workspace\shop-api\ShopApi\ShopApi\obj\Debug\netcoreapp3.1\ShopApi.genruntimeconfig.cache
+C:\Workspace\shop-api\ShopApi\ShopApi\obj\Debug\netcoreapp3.1\ShopApi.csproj.AssemblyReference.cache
+C:\Workspace\shop-api\ShopApi\ShopApi\bin\Debug\netcoreapp3.1\AutoMapper.dll
+C:\Workspace\shop-api\ShopApi\ShopApi\bin\Debug\netcoreapp3.1\AutoMapper.Extensions.Microsoft.DependencyInjection.dll
+C:\Workspace\shop-api\ShopApi\ShopApi\bin\Debug\netcoreapp3.1\MailKit.dll
+C:\Workspace\shop-api\ShopApi\ShopApi\bin\Debug\netcoreapp3.1\MimeKit.dll
+C:\Workspace\shop-api\ShopApi\ShopApi\bin\Debug\netcoreapp3.1\BouncyCastle.Crypto.dll

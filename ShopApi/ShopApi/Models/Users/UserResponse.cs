@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace ShopApi.Dtos.Users
+namespace ShopApi.Models.Users
 {
     public class UserResponse
     {

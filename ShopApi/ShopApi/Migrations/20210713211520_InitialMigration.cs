@@ -18,7 +18,14 @@ namespace ShopApi.Migrations
                     Phone = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
                     ImageUrl = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
                     Birthday = table.Column<long>(type: "bigint", nullable: true),
-                    DateCreated = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
+                    Created = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    Updated = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    Role = table.Column<int>(type: "int", nullable: false),
+                    VerificationToken = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Verified = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    ResetToken = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ResetTokenExpires = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    PasswordReset = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -46,6 +53,32 @@ namespace ShopApi.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "RefreshToken",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserId = table.Column<string>(type: "nvarchar(32)", nullable: false),
+                    Token = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Expires = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Created = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CreatedByIp = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Revoked = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    RevokedByIp = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ReplacedByToken = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_RefreshToken", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_RefreshToken_User_UserId",
+                        column: x => x.UserId,
+                        principalTable: "User",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "UserAccount",
                 columns: table => new
                 {
@@ -54,7 +87,7 @@ namespace ShopApi.Migrations
                     Username = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
                     PasswordHash = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
                     PasswordSalt = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
-                    DateCreated = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
+                    Created = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -73,6 +106,11 @@ namespace ShopApi.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_RefreshToken_UserId",
+                table: "RefreshToken",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_UserAccount_UserId",
                 table: "UserAccount",
                 column: "UserId");
@@ -82,6 +120,9 @@ namespace ShopApi.Migrations
         {
             migrationBuilder.DropTable(
                 name: "AuthenticationProvider");
+
+            migrationBuilder.DropTable(
+                name: "RefreshToken");
 
             migrationBuilder.DropTable(
                 name: "UserAccount");

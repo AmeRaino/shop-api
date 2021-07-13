@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using ShopApi.Entity;
 
-namespace ShopApi.Dtos.Users
+namespace ShopApi.Models.Users
 {
     public class UpdateUserModel
     {
@@ -14,5 +11,6 @@ namespace ShopApi.Dtos.Users
         public string? Phone { get; set; }
         public string? ImageUrl { get; set; }
         public long? Birthday { get; set; }
+        public Role? Role { get; set; }
     }
 }
