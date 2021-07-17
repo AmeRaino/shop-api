@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace ShopApi.Models.Users
 {
-    public class ForgotPasswordModel
+    public class ForgotPasswordRequest
     {
         public string Email { get; set; }
     }

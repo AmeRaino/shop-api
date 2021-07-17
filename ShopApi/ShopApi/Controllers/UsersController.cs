@@ -119,7 +119,7 @@ namespace ShopApi.Controllers
         }
 
         [HttpPost("forgot-password")]
-        public IActionResult ForgotPassword(ForgotPasswordModel model)
+        public IActionResult ForgotPassword(ForgotPasswordRequest model)
         {
             _userService.ForgotPassword(model, Request.Headers["origin"]);
             return Ok(new { message = "Please check your email for resetting password" });
@@ -153,7 +153,7 @@ namespace ShopApi.Controllers
 
         [Authorize]
         [HttpPut("{id}")]
-        public IActionResult Update(string id, [FromBody] UpdateUserModel model)
+        public IActionResult Update(string id, [FromBody] UpdateUserRequest model)
         {
             try
             {

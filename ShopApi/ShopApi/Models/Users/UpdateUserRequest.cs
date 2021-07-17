@@ -2,7 +2,7 @@
 
 namespace ShopApi.Models.Users
 {
-    public class UpdateUserModel
+    public class UpdateUserRequest
     {
 
         public string? Firstname { get; set; }

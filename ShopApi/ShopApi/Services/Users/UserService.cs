@@ -28,10 +28,10 @@ namespace ShopApi.Services.Users
         AuthenticationProviderResponse AuthenticateWithThirdParty(AuthenticationProviderRequest model, string ipAddress);
         Task<IEnumerable<User>> GetAllAsync();
         Task<User> GetByIdAsync(string Id);
-        void Update(string id, UpdateUserModel model);
+        void Update(string id, UpdateUserRequest model);
         void Register(UserRegisterRequest model, string origin);
         void VerifyEmail(string token);
-        void ForgotPassword(ForgotPasswordModel model, string origin);
+        void ForgotPassword(ForgotPasswordRequest model, string origin);
         void ResetPassword(ResetPasswordRequest model);
         
     }
@@ -212,7 +212,7 @@ namespace ShopApi.Services.Users
             }
         }
 
-        public void Update(string id, UpdateUserModel model)
+        public void Update(string id, UpdateUserRequest model)
         {
             using (var scope = scopeFactory.CreateScope())
             {
@@ -324,7 +324,7 @@ namespace ShopApi.Services.Users
 
         #region Password
 
-        public void ForgotPassword(ForgotPasswordModel model, string origin)
+        public void ForgotPassword(ForgotPasswordRequest model, string origin)
         {
             using (var scope = scopeFactory.CreateScope())
             {
