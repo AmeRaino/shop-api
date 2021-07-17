@@ -83,11 +83,12 @@ namespace ShopApi.Controllers
 
         // Authenticate with third-party identity provider
         [HttpPost("third-party-authenticate")]
-        public IActionResult Authenticate(ThirdPartyAuthenticateRequest model)
+        public IActionResult Authenticate(AuthenticationProviderRequest model)
         {
             try
             {
-                var response = _userService.Authenticate3rdPartyAsync(model);
+                var response = _userService.AuthenticateWithThirdParty(model, ipAddress());
+                setTokenCookie(response.RefreshToken);
                 return Ok(response);
             }
             catch (ApplicationException ex)

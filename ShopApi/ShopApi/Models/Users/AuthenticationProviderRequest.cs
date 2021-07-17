@@ -2,7 +2,7 @@
 
 namespace ShopApi.Models.Users
 {
-    public class ThirdPartyAuthenticateRequest
+    public class AuthenticationProviderRequest
     {
         public string KeyProvided { get; set; }
 
