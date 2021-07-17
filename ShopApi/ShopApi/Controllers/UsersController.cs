@@ -83,11 +83,11 @@ namespace ShopApi.Controllers
 
         // Authenticate with third-party identity provider
         [HttpPost("third-party-authenticate")]
-        public async Task<IActionResult> Authenticate(ThirdPartyAuthenticateRequest model)
+        public IActionResult Authenticate(ThirdPartyAuthenticateRequest model)
         {
             try
             {
-                var response = await _userService.Authenticate3rdPartyAsync(model);
+                var response = _userService.Authenticate3rdPartyAsync(model);
                 return Ok(response);
             }
             catch (ApplicationException ex)
