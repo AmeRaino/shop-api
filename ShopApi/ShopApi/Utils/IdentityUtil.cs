@@ -9,5 +9,11 @@ namespace ShopApi.Utils
             string number = String.Format("{0:d9}{1}", DateTime.Now.Ticks, Math.Abs(Guid.NewGuid().GetHashCode()));
             return number.Substring(0, Math.Min(number.Length, 32));
         }
+
+        public static int GenerateId(int length)
+        {
+            string number = String.Format("{0:d9}{1}", DateTime.Now.Ticks, Math.Abs(Guid.NewGuid().GetHashCode()));
+            return int.Parse(number.Substring(0, Math.Min(number.Length, length)));
+        }
     }
 }
