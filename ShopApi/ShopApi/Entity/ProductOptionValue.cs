@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -8,17 +7,18 @@ using System.Threading.Tasks;
 
 namespace ShopApi.Entity
 {
-    [Table("ProductSku")]
-    public class ProductSku
+    [Table("ProductOptionValue")]
+    public class ProductOptionValue
     {
         public int ProductId { get; set; }
-        public int SkuId { get; set; }
 
-        [MaxLength(64)]
-        public string Sku { get; set; }
+        public int ValueId { get; set; }
+        public int OptionId { get; set; }
+        [MaxLength(32)]
+        public string ValueName { get; set; }
 
         // Navigation props
-        public Product Product { get; set; }
+        public virtual ProductOption ProductOption { get; set; }
         public virtual ICollection<ProductSkuValue> ProductSkuValues { get; set; }
     }
 }

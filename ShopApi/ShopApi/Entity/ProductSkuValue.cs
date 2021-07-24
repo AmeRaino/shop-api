@@ -9,26 +9,17 @@ using System.Threading.Tasks;
 namespace ShopApi.Entity
 {
     [Table("ProductSkuValue")]
-    [Keyless]
-    [Index( new [] { nameof(ProductVariantId), nameof(ProductSkuId) }, IsUnique = true)]
-    [Index(new[] { nameof(ProductVariantOptionId), nameof(ProductVariantId), nameof(ProductId) }, IsUnique = true)]
+    
     public class ProductSkuValue
     {
-        [ForeignKey("ProductVariantOption")]
-        public int? ProductVariantOptionId { get; set; }
+        public int ProductId { get; set; }
+        public int SkuId { get; set; }
+        public int OptionId { get; set; }
+        public int ValueId { get; set; }
 
-        [ForeignKey("ProductSku")]
-        public int? ProductSkuId { get; set; }
+        public virtual ProductSku ProductSku { get; set; }
+        public virtual ProductOption ProductOption { get; set; }
+        public virtual ProductOptionValue ProductOptionValue { get; set; }
 
-        [ForeignKey("ProductVariant")]
-        public int? ProductVariantId { get; set; }
-
-        [ForeignKey("Product")]
-        public int? ProductId { get; set; }
-
-        // Navigation Props
-        public ProductVariantOption ProductVariantOption { get; set; }
-        public ProductSku ProductSku { get; set; }
-        public ProductVariant ProductVariant { get; set; }
     }
 }

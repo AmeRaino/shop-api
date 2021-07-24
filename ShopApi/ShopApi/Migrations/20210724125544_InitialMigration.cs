@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace ShopApi.Migrations
 {
-    public partial class InitMigration : Migration
+    public partial class InitialMigration : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -13,7 +13,7 @@ namespace ShopApi.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true)
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -46,40 +46,39 @@ namespace ShopApi.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ProductSku",
+                name: "ProductOption",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
                     ProductId = table.Column<int>(type: "int", nullable: false),
-                    Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Sku = table.Column<string>(type: "nvarchar(45)", maxLength: 45, nullable: true)
+                    OptionId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    OptionName = table.Column<string>(type: "nvarchar(40)", maxLength: 40, nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ProductSku", x => x.Id);
+                    table.PrimaryKey("PK_ProductOption", x => new { x.ProductId, x.OptionId });
                     table.ForeignKey(
-                        name: "FK_ProductSku_Product_ProductId",
+                        name: "FK_ProductOption_Product_ProductId",
                         column: x => x.ProductId,
                         principalTable: "Product",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
-                name: "ProductVariant",
+                name: "ProductSku",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    ProductId = table.Column<int>(type: "int", nullable: false),
+                    SkuId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
-                    ProductId = table.Column<int>(type: "int", nullable: false)
+                    Sku = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ProductVariant", x => x.Id);
+                    table.PrimaryKey("PK_ProductSku", x => new { x.ProductId, x.SkuId });
                     table.ForeignKey(
-                        name: "FK_ProductVariant_Product_ProductId",
+                        name: "FK_ProductSku_Product_ProductId",
                         column: x => x.ProductId,
                         principalTable: "Product",
                         principalColumn: "Id",
@@ -155,22 +154,23 @@ namespace ShopApi.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ProductVariantOption",
+                name: "ProductOptionValue",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    ProductId = table.Column<int>(type: "int", nullable: false),
+                    ValueId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    ProductVariantId = table.Column<int>(type: "int", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true)
+                    OptionId = table.Column<int>(type: "int", nullable: false),
+                    ValueName = table.Column<string>(type: "nvarchar(32)", maxLength: 32, nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ProductVariantOption", x => x.Id);
+                    table.PrimaryKey("PK_ProductOptionValue", x => new { x.ProductId, x.OptionId, x.ValueId });
                     table.ForeignKey(
-                        name: "FK_ProductVariantOption_ProductVariant_ProductVariantId",
-                        column: x => x.ProductVariantId,
-                        principalTable: "ProductVariant",
-                        principalColumn: "Id",
+                        name: "FK_ProductOptionValue_ProductOption_ProductId_OptionId",
+                        columns: x => new { x.ProductId, x.OptionId },
+                        principalTable: "ProductOption",
+                        principalColumns: new[] { "ProductId", "OptionId" },
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -178,30 +178,39 @@ namespace ShopApi.Migrations
                 name: "ProductSkuValue",
                 columns: table => new
                 {
-                    ProductVariantOptionId = table.Column<int>(type: "int", nullable: true),
-                    ProductSkuId = table.Column<int>(type: "int", nullable: true),
-                    ProductVariantId = table.Column<int>(type: "int", nullable: true),
-                    ProductId = table.Column<int>(type: "int", nullable: true)
+                    ProductId = table.Column<int>(type: "int", nullable: false),
+                    SkuId = table.Column<int>(type: "int", nullable: false),
+                    OptionId = table.Column<int>(type: "int", nullable: false),
+                    ValueId = table.Column<int>(type: "int", nullable: false),
+                    ProductSkuProductId = table.Column<int>(type: "int", nullable: true),
+                    ProductSkuSkuId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
+                    table.PrimaryKey("PK_ProductSkuValue", x => new { x.ProductId, x.SkuId, x.OptionId });
                     table.ForeignKey(
-                        name: "FK_ProductSkuValue_ProductSku_ProductSkuId",
-                        column: x => x.ProductSkuId,
+                        name: "FK_ProductSkuValue_ProductOption_ProductId_OptionId",
+                        columns: x => new { x.ProductId, x.OptionId },
+                        principalTable: "ProductOption",
+                        principalColumns: new[] { "ProductId", "OptionId" },
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_ProductSkuValue_ProductOptionValue_ProductId_OptionId_ValueId",
+                        columns: x => new { x.ProductId, x.OptionId, x.ValueId },
+                        principalTable: "ProductOptionValue",
+                        principalColumns: new[] { "ProductId", "OptionId", "ValueId" },
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_ProductSkuValue_ProductSku_ProductId_SkuId",
+                        columns: x => new { x.ProductId, x.SkuId },
                         principalTable: "ProductSku",
-                        principalColumn: "Id",
+                        principalColumns: new[] { "ProductId", "SkuId" },
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_ProductSkuValue_ProductVariant_ProductVariantId",
-                        column: x => x.ProductVariantId,
-                        principalTable: "ProductVariant",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_ProductSkuValue_ProductVariantOption_ProductVariantOptionId",
-                        column: x => x.ProductVariantOptionId,
-                        principalTable: "ProductVariantOption",
-                        principalColumn: "Id",
+                        name: "FK_ProductSkuValue_ProductSku_ProductSkuProductId_ProductSkuSkuId",
+                        columns: x => new { x.ProductSkuProductId, x.ProductSkuSkuId },
+                        principalTable: "ProductSku",
+                        principalColumns: new[] { "ProductId", "SkuId" },
                         onDelete: ReferentialAction.Restrict);
                 });
 
@@ -211,38 +220,19 @@ namespace ShopApi.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ProductSku_ProductId",
+                name: "IX_ProductSku_Sku",
                 table: "ProductSku",
-                column: "ProductId");
+                column: "Sku");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ProductSkuValue_ProductSkuId",
+                name: "IX_ProductSkuValue_ProductId_OptionId_ValueId",
                 table: "ProductSkuValue",
-                column: "ProductSkuId");
+                columns: new[] { "ProductId", "OptionId", "ValueId" });
 
             migrationBuilder.CreateIndex(
-                name: "IX_ProductSkuValue_ProductVariantId_ProductSkuId",
+                name: "IX_ProductSkuValue_ProductSkuProductId_ProductSkuSkuId",
                 table: "ProductSkuValue",
-                columns: new[] { "ProductVariantId", "ProductSkuId" },
-                unique: true,
-                filter: "[ProductVariantId] IS NOT NULL AND [ProductSkuId] IS NOT NULL");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ProductSkuValue_ProductVariantOptionId_ProductVariantId_ProductId",
-                table: "ProductSkuValue",
-                columns: new[] { "ProductVariantOptionId", "ProductVariantId", "ProductId" },
-                unique: true,
-                filter: "[ProductVariantOptionId] IS NOT NULL AND [ProductVariantId] IS NOT NULL AND [ProductId] IS NOT NULL");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ProductVariant_ProductId",
-                table: "ProductVariant",
-                column: "ProductId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ProductVariantOption_ProductVariantId",
-                table: "ProductVariantOption",
-                column: "ProductVariantId");
+                columns: new[] { "ProductSkuProductId", "ProductSkuSkuId" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_RefreshToken_UserId",
@@ -270,16 +260,16 @@ namespace ShopApi.Migrations
                 name: "UserAccount");
 
             migrationBuilder.DropTable(
-                name: "ProductSku");
+                name: "ProductOptionValue");
 
             migrationBuilder.DropTable(
-                name: "ProductVariantOption");
+                name: "ProductSku");
 
             migrationBuilder.DropTable(
                 name: "User");
 
             migrationBuilder.DropTable(
-                name: "ProductVariant");
+                name: "ProductOption");
 
             migrationBuilder.DropTable(
                 name: "Product");

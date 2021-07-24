@@ -8,17 +8,19 @@ using System.Threading.Tasks;
 
 namespace ShopApi.Entity
 {
-    [Table("ProductSku")]
-    public class ProductSku
+    [Table("ProductOption")]
+    public class ProductOption
     {
         public int ProductId { get; set; }
-        public int SkuId { get; set; }
+        public int OptionId { get; set; }
 
-        [MaxLength(64)]
-        public string Sku { get; set; }
+        [MaxLength(40)]
+        public string OptionName { get; set; }
 
         // Navigation props
-        public Product Product { get; set; }
+        public virtual Product Product { get; set; }
         public virtual ICollection<ProductSkuValue> ProductSkuValues { get; set; }
+        public virtual ICollection<ProductOptionValue> ProductOptionValues { get; set; }
+
     }
 }

@@ -10,8 +10,8 @@ using ShopApi.Helpers;
 namespace ShopApi.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20210720221053_InitMigration")]
-    partial class InitMigration
+    [Migration("20210724125544_InitialMigration")]
+    partial class InitialMigration
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -57,105 +57,102 @@ namespace ShopApi.Migrations
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<string>("Name")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
                     b.ToTable("Product");
                 });
 
-            modelBuilder.Entity("ShopApi.Entity.ProductSku", b =>
+            modelBuilder.Entity("ShopApi.Entity.ProductOption", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("OptionId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<string>("OptionName")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
 
+                    b.HasKey("ProductId", "OptionId");
+
+                    b.ToTable("ProductOption");
+                });
+
+            modelBuilder.Entity("ShopApi.Entity.ProductOptionValue", b =>
+                {
                     b.Property<int>("ProductId")
                         .HasColumnType("int");
 
+                    b.Property<int>("OptionId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ValueId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<string>("ValueName")
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.HasKey("ProductId", "OptionId", "ValueId");
+
+                    b.ToTable("ProductOptionValue");
+                });
+
+            modelBuilder.Entity("ShopApi.Entity.ProductSku", b =>
+                {
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SkuId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
                     b.Property<string>("Sku")
-                        .HasMaxLength(45)
-                        .HasColumnType("nvarchar(45)");
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
 
-                    b.HasKey("Id");
+                    b.HasKey("ProductId", "SkuId");
 
-                    b.HasIndex("ProductId");
+                    b.HasIndex("Sku");
 
                     b.ToTable("ProductSku");
                 });
 
             modelBuilder.Entity("ShopApi.Entity.ProductSkuValue", b =>
                 {
-                    b.Property<int?>("ProductId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("ProductSkuId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("ProductVariantId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("ProductVariantOptionId")
-                        .HasColumnType("int");
-
-                    b.HasIndex("ProductSkuId");
-
-                    b.HasIndex("ProductVariantId", "ProductSkuId")
-                        .IsUnique()
-                        .HasFilter("[ProductVariantId] IS NOT NULL AND [ProductSkuId] IS NOT NULL");
-
-                    b.HasIndex("ProductVariantOptionId", "ProductVariantId", "ProductId")
-                        .IsUnique()
-                        .HasFilter("[ProductVariantOptionId] IS NOT NULL AND [ProductVariantId] IS NOT NULL AND [ProductId] IS NOT NULL");
-
-                    b.ToTable("ProductSkuValue");
-                });
-
-            modelBuilder.Entity("ShopApi.Entity.ProductVariant", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<string>("Name")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
                     b.Property<int>("ProductId")
                         .HasColumnType("int");
 
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProductId");
-
-                    b.ToTable("ProductVariant");
-                });
-
-            modelBuilder.Entity("ShopApi.Entity.ProductVariantOption", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<string>("Name")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<int>("ProductVariantId")
+                    b.Property<int>("SkuId")
                         .HasColumnType("int");
 
-                    b.HasKey("Id");
+                    b.Property<int>("OptionId")
+                        .HasColumnType("int");
 
-                    b.HasIndex("ProductVariantId");
+                    b.Property<int?>("ProductSkuProductId")
+                        .HasColumnType("int");
 
-                    b.ToTable("ProductVariantOption");
+                    b.Property<int?>("ProductSkuSkuId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ValueId")
+                        .HasColumnType("int");
+
+                    b.HasKey("ProductId", "SkuId", "OptionId");
+
+                    b.HasIndex("ProductSkuProductId", "ProductSkuSkuId");
+
+                    b.HasIndex("ProductId", "OptionId", "ValueId");
+
+                    b.ToTable("ProductSkuValue");
                 });
 
             modelBuilder.Entity("ShopApi.Entity.User", b =>
@@ -262,40 +259,32 @@ namespace ShopApi.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("ShopApi.Entity.ProductSku", b =>
-                {
-                    b.HasOne("ShopApi.Entity.Product", null)
-                        .WithMany("ProductSkues")
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("ShopApi.Entity.ProductSkuValue", b =>
-                {
-                    b.HasOne("ShopApi.Entity.ProductSku", "ProductSku")
-                        .WithMany()
-                        .HasForeignKey("ProductSkuId");
-
-                    b.HasOne("ShopApi.Entity.ProductVariant", "ProductVariant")
-                        .WithMany()
-                        .HasForeignKey("ProductVariantId");
-
-                    b.HasOne("ShopApi.Entity.ProductVariantOption", "ProductVariantOption")
-                        .WithMany()
-                        .HasForeignKey("ProductVariantOptionId");
-
-                    b.Navigation("ProductSku");
-
-                    b.Navigation("ProductVariant");
-
-                    b.Navigation("ProductVariantOption");
-                });
-
-            modelBuilder.Entity("ShopApi.Entity.ProductVariant", b =>
+            modelBuilder.Entity("ShopApi.Entity.ProductOption", b =>
                 {
                     b.HasOne("ShopApi.Entity.Product", "Product")
-                        .WithMany("ProductVariants")
+                        .WithMany("ProductOptions")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("ShopApi.Entity.ProductOptionValue", b =>
+                {
+                    b.HasOne("ShopApi.Entity.ProductOption", "ProductOption")
+                        .WithMany("ProductOptionValues")
+                        .HasForeignKey("ProductId", "OptionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ProductOption");
+                });
+
+            modelBuilder.Entity("ShopApi.Entity.ProductSku", b =>
+                {
+                    b.HasOne("ShopApi.Entity.Product", "Product")
+                        .WithMany("ProductSkus")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -303,15 +292,34 @@ namespace ShopApi.Migrations
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("ShopApi.Entity.ProductVariantOption", b =>
+            modelBuilder.Entity("ShopApi.Entity.ProductSkuValue", b =>
                 {
-                    b.HasOne("ShopApi.Entity.ProductVariant", "ProductVariant")
-                        .WithMany("ProductVariantOptions")
-                        .HasForeignKey("ProductVariantId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                    b.HasOne("ShopApi.Entity.ProductOption", "ProductOption")
+                        .WithMany("ProductSkuValues")
+                        .HasForeignKey("ProductId", "OptionId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("ProductVariant");
+                    b.HasOne("ShopApi.Entity.ProductSku", null)
+                        .WithMany("ProductSkuValues")
+                        .HasForeignKey("ProductId", "SkuId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("ShopApi.Entity.ProductSku", "ProductSku")
+                        .WithMany()
+                        .HasForeignKey("ProductSkuProductId", "ProductSkuSkuId");
+
+                    b.HasOne("ShopApi.Entity.ProductOptionValue", "ProductOptionValue")
+                        .WithMany("ProductSkuValues")
+                        .HasForeignKey("ProductId", "OptionId", "ValueId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ProductOption");
+
+                    b.Navigation("ProductOptionValue");
+
+                    b.Navigation("ProductSku");
                 });
 
             modelBuilder.Entity("ShopApi.Entity.User", b =>
@@ -374,14 +382,26 @@ namespace ShopApi.Migrations
 
             modelBuilder.Entity("ShopApi.Entity.Product", b =>
                 {
-                    b.Navigation("ProductSkues");
+                    b.Navigation("ProductOptions");
 
-                    b.Navigation("ProductVariants");
+                    b.Navigation("ProductSkus");
                 });
 
-            modelBuilder.Entity("ShopApi.Entity.ProductVariant", b =>
+            modelBuilder.Entity("ShopApi.Entity.ProductOption", b =>
                 {
-                    b.Navigation("ProductVariantOptions");
+                    b.Navigation("ProductOptionValues");
+
+                    b.Navigation("ProductSkuValues");
+                });
+
+            modelBuilder.Entity("ShopApi.Entity.ProductOptionValue", b =>
+                {
+                    b.Navigation("ProductSkuValues");
+                });
+
+            modelBuilder.Entity("ShopApi.Entity.ProductSku", b =>
+                {
+                    b.Navigation("ProductSkuValues");
                 });
 #pragma warning restore 612, 618
         }
