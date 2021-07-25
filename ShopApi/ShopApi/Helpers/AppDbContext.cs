@@ -38,15 +38,16 @@ namespace ShopApi.Helpers
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+            // ProductSku
             modelBuilder
                 .Entity<ProductSku>()
                 .HasKey(p => new { p.ProductId, p.SkuId });
 
             modelBuilder
-            .Entity<ProductSku>()
-            .HasOne(p => p.Product)
-            .WithMany(ps => ps.ProductSkus)
-            .HasForeignKey(x => x.ProductId);
+                .Entity<ProductSku>()
+                .HasOne(p => p.Product)
+                .WithMany(ps => ps.ProductSkus)
+                .HasForeignKey(x => x.ProductId);
 
             modelBuilder
                 .Entity<ProductSku>()
@@ -56,40 +57,40 @@ namespace ShopApi.Helpers
                 .Entity<ProductSku>()
                 .Property(p => p.SkuId).ValueGeneratedOnAdd();
 
-            modelBuilder
-            .Entity<ProductSkuValue>()
-            .HasOne<ProductSku>()
-            .WithMany(p => p.ProductSkuValues)
-            .IsRequired(false)
-            .OnDelete(DeleteBehavior.Restrict);
+            // ProductSkuValue
+            modelBuilder.Entity<ProductSkuValue>()
+                .HasOne(p => p.ProductSku)
+                .WithMany(p => p.ProductSkuValues)
+                .HasForeignKey(x => new { x.ProductId, x.SkuId })
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder
                 .Entity<ProductSkuValue>()
                 .HasKey(p => new { p.ProductId, p.SkuId, p.OptionId });
 
             modelBuilder
-            .Entity<ProductSkuValue>()
-            .HasOne(p => p.ProductOptionValue)
-            .WithMany(ps => ps.ProductSkuValues)
-            .HasForeignKey(x => new { x.ProductId, x.OptionId, x.ValueId })
-            .OnDelete(DeleteBehavior.Restrict);
+                .Entity<ProductSkuValue>()
+                .HasOne(p => p.ProductOptionValue)
+                .WithMany(ps => ps.ProductSkuValues)
+                .HasForeignKey(x => new { x.ProductId, x.OptionId, x.ValueId })
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder
-            .Entity<ProductSkuValue>()
-            .HasOne(p => p.ProductOption)
-            .WithMany(ps => ps.ProductSkuValues)
-            .HasForeignKey(x => new { x.ProductId, x.OptionId })
-            .OnDelete(DeleteBehavior.Restrict);
+                .Entity<ProductSkuValue>()
+                .HasOne(p => p.ProductOption)
+                .WithMany(ps => ps.ProductSkuValues)
+                .HasForeignKey(x => new { x.ProductId, x.OptionId })
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder
-        .Entity<ProductOptionValue>()
-        .HasKey(p => new { p.ProductId, p.OptionId, p.ValueId });
+                .Entity<ProductOptionValue>()
+                .HasKey(p => new { p.ProductId, p.OptionId, p.ValueId });
 
             modelBuilder
-        .Entity<ProductOptionValue>()
-        .HasOne(p => p.ProductOption)
-        .WithMany(ps => ps.ProductOptionValues)
-        .HasForeignKey(x => new { x.ProductId, x.OptionId });
+                .Entity<ProductOptionValue>()
+                .HasOne(p => p.ProductOption)
+                .WithMany(ps => ps.ProductOptionValues)
+                .HasForeignKey(x => new { x.ProductId, x.OptionId });
             //    .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder
@@ -98,20 +99,20 @@ namespace ShopApi.Helpers
 
 
             modelBuilder
-        .Entity<ProductOption>()
-        .HasKey(p => new { p.ProductId, p.OptionId });
+                .Entity<ProductOption>()
+                .HasKey(p => new { p.ProductId, p.OptionId });
 
             modelBuilder
-        .Entity<ProductOption>()
-        .HasOne(p => p.Product)
-        .WithMany(po => po.ProductOptions)
-        .HasForeignKey(x => new { x.ProductId })
-        .OnDelete(DeleteBehavior.Restrict);
+                .Entity<ProductOption>()
+                .HasOne(p => p.Product)
+                .WithMany(po => po.ProductOptions)
+                .HasForeignKey(x => new { x.ProductId })
+                .OnDelete(DeleteBehavior.Restrict);
 
 
             modelBuilder
-            .Entity<ProductOption>()
-            .Property(p => p.OptionId).ValueGeneratedOnAdd();
+                .Entity<ProductOption>()
+                .Property(p => p.OptionId).ValueGeneratedOnAdd();
         }
     }
 }

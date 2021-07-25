@@ -13,7 +13,7 @@ namespace ShopApi.Entity
     public class ProductSkuValue
     {
         public int ProductId { get; set; }
-        public int SkuId { get; set; }
+        public int? SkuId { get; set; }
         public int OptionId { get; set; }
         public int ValueId { get; set; }
 

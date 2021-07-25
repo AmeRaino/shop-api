@@ -9,12 +9,13 @@ using System.Threading.Tasks;
 namespace ShopApi.Entity
 {
     [Table("ProductOption")]
+    [Index("OptionName", IsUnique = true)]
     public class ProductOption
     {
         public int ProductId { get; set; }
         public int OptionId { get; set; }
 
-        [MaxLength(40)]
+        [StringLength(50)]
         public string OptionName { get; set; }
 
         // Navigation props

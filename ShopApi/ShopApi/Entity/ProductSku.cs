@@ -16,6 +16,10 @@ namespace ShopApi.Entity
 
         [MaxLength(64)]
         public string Sku { get; set; }
+        public decimal Price { get; set; }
+
+        [StringLength(255)]
+        public string? ImageUrl { get; set; }
 
         // Navigation props
         public Product Product { get; set; }

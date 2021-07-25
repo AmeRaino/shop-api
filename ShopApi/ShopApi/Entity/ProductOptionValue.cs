@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -8,13 +9,14 @@ using System.Threading.Tasks;
 namespace ShopApi.Entity
 {
     [Table("ProductOptionValue")]
+    [Index("ValueName", IsUnique = true)]
     public class ProductOptionValue
     {
         public int ProductId { get; set; }
 
         public int ValueId { get; set; }
         public int OptionId { get; set; }
-        [MaxLength(32)]
+        [StringLength(50)]
         public string ValueName { get; set; }
 
         // Navigation props
